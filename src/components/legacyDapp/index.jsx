@@ -5,17 +5,20 @@
  * Meanwhile, legacy dapps are still hosted here
  */
 
-import React, {
-  useContext,
-} from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
 import {
   Modal,
   ModalHeader,
   ModalBody,
 } from 'reactstrap';
+import {
+  useWeb3Context,
+} from 'web3-react';
 
-import SnowflakeContext from '../../contexts/snowflakeContext';
+import {
+  getAccountEin,
+} from '../../services/utilities';
 
 import {
   Status,
@@ -29,12 +32,16 @@ import {
   Oxide,
 } from '../../legacy/Rinkeby/0x2930Cf9EE8E03C3E06Fa1828cCD8E371323Fde0f/index';
 
-function LegacyDapp(props) {
-  const user = useContext(SnowflakeContext);
+import {
+  WhatOptionYouPreferView2,
+} from '../../legacy/Rinkeby/0xd48c0379fF5888006fF6E1eA6bC45a23b75F5668/index';
 
-  const {
-    ein,
-  } = user;
+
+function LegacyDapp(props) {
+  const web3 = useWeb3Context();
+
+  const [ein, setEin] = useState('');
+  const [loading, setLoading] = useState(true);
 
   const {
     id,
@@ -42,6 +49,19 @@ function LegacyDapp(props) {
     isOpen,
     toggle,
   } = props;
+
+  if (web3.active && loading) {
+    getAccountEin(web3.library, web3.account)
+      .then((res) => {
+        if (res !== '') {
+          setEin(res);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
 
   function displayDapp() {
     if (id === '0x26098F10E1539a6b75998AfB1DA552B8fD0AE404') {
@@ -52,10 +72,14 @@ function LegacyDapp(props) {
       return <Oxide ein={ein} />;
     }
 
+	if (id === '0xd48c0379fF5888006fF6E1eA6bC45a23b75F5668') {
+      return <WhatOptionYouPreferView2 ein={ein} />;
+    }
+	
     return <Status ein={ein} />;
   }
 
-  if (ein) {
+  if (!loading) {
     return (
       <Modal isOpen={isOpen} toggle={toggle} size="lg">
         <ModalHeader toggle={toggle}>
